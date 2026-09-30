@@ -1,1 +1,119 @@
+import java.io.*;
+import java.util.*;
 
+public class Main {
+
+    static class C {
+        int a, b;
+        String d;
+
+        C(int a, int b, String d) {
+            this.a = a;
+            this.b = b;
+            this.d = d;
+        }
+    }
+
+    static class P {
+        int x, y;
+
+        P(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    static long key(int x, int y) {
+        return (((long) x) << 32) ^ (y & 0xffffffffL);
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+        int n = Integer.parseInt(br.readLine().trim());
+        C[] arr = new C[n];
+
+        for (int i = 0; i < n; i++) {
+            String[] s = br.readLine().trim().split("\\s+");
+            arr[i] = new C(
+                Integer.parseInt(s[0]),
+                Integer.parseInt(s[1]),
+                s[2]
+            );
+        }
+
+        int target = Integer.parseInt(br.readLine().trim());
+
+        Arrays.sort(arr, new Comparator<C>() {
+            public int compare(C a, C b) {
+                if (a.a != b.a)
+                    return Integer.compare(a.a, b.a);
+                return Integer.compare(a.b, b.b);
+            }
+        });
+
+        Map<Integer, P> pos = new HashMap<Integer, P>();
+        Map<Long, Integer> grid = new HashMap<Long, Integer>();
+
+        if (n > 0) {
+            pos.put(arr[0].a, new P(0, 0));
+            grid.put(key(0, 0), arr[0].a);
+        }
+
+        for (int i = 0; i < n; i++) {
+
+            C c = arr[i];
+            P p = pos.get(c.a);
+
+            if (p == null)
+                continue;
+
+            int x = p.x;
+            int y = p.y;
+
+            if (c.d.equals("top"))
+                y++;
+            else if (c.d.equals("down"))
+                y--;
+            else if (c.d.equals("left"))
+                x--;
+            else
+                x++;
+
+            long k = key(x, y);
+
+            Integer old = grid.get(k);
+
+            if (old != null)
+                pos.remove(old);
+
+            pos.put(c.b, new P(x, y));
+            grid.put(k, c.b);
+        }
+
+        P p = pos.get(target);
+
+        if (p == null) {
+            System.out.println("-1 -1 -1 -1");
+            return;
+        }
+
+        int x = p.x;
+        int y = p.y;
+
+        int up = grid.containsKey(key(x, y + 1))
+                ? grid.get(key(x, y + 1)) : -1;
+
+        int down = grid.containsKey(key(x, y - 1))
+                ? grid.get(key(x, y - 1)) : -1;
+
+        int left = grid.containsKey(key(x - 1, y))
+                ? grid.get(key(x - 1, y)) : -1;
+
+        int right = grid.containsKey(key(x + 1, y))
+                ? grid.get(key(x + 1, y)) : -1;
+
+        System.out.println(up + " " + down + " " + left + " " + right);
+    }
+}
